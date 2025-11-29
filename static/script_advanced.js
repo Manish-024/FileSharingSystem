@@ -1,5 +1,5 @@
 // API Base URL
-const API_BASE_URL = 'https://filesharingsystem-5rd1.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5005/api';
 
 // Global state
 let currentUser = '';
