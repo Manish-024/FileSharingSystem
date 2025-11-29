@@ -1,32 +1,10 @@
 // API Base URL
-const API_BASE_URL = 'http://localhost:5005/api';
+const API_BASE_URL = 'https://filesharingsystem-5rd1.onrender.com/api';
 
 // Global state
 let currentUser = '';
 let currentTab = 'home';
 let charts = {};
-let activeHash = ''; // Track currently active hash
-
-// Hash Tracker Functions
-function showHashTracker(hash, label = 'Active Hash') {
-    const tracker = document.getElementById('hashTracker');
-    const display = document.getElementById('activeHashDisplay');
-    activeHash = hash;
-    display.textContent = hash;
-    tracker.style.display = 'block';
-    
-    // Auto-hide after 10 seconds
-    setTimeout(() => {
-        tracker.style.display = 'none';
-    }, 10000);
-}
-
-function copyActiveHash() {
-    if (activeHash) {
-        navigator.clipboard.writeText(activeHash);
-        alert('✅ Hash copied to clipboard!\n\n' + activeHash);
-    }
-}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
@@ -183,24 +161,11 @@ async function handleFileUpload(event) {
         const data = await response.json();
         
         if (response.ok) {
-            // Show detailed success message with hash
-            let message = `✅ File uploaded successfully!\n\n`;
-            message += `📦 Block #${data.block.index} mined\n`;
-            message += `🔐 File Hash: ${data.file_hash}\n`;
-            message += `📄 File Name: ${data.file_name}\n`;
-            message += `📊 Size: ${formatFileSize(data.file_size)}\n`;
+            let message = `✓ File uploaded successfully! Block #${data.block.index} mined.`;
             if (data.is_encrypted) {
-                message += '🔒 File is ENCRYPTED\n';
+                message += ' 🔒 File is encrypted.';
             }
-            message += `🆔 Contract ID: ${data.contract_id}`;
-            
             showStatus(message, 'success');
-            
-            // Show hash in tracker
-            showHashTracker(data.file_hash, 'Uploaded File Hash');
-            
-            // Show hash in alert as well
-            alert(`✅ UPLOAD SUCCESSFUL!\n\n🔐 Your File Hash (SHA-256):\n${data.file_hash}\n\nThis unique hash identifies your file on the blockchain.\nSave this hash for reference!`);
             
             // Reset form
             event.target.reset();
@@ -282,7 +247,7 @@ async function loadFiles() {
 function createFileItem(file) {
     const fileSize = formatFileSize(file.file_size);
     const timestamp = formatTimestamp(file.timestamp);
-    const fullHash = file.file_hash; // Show FULL hash, not truncated
+    const shortHash = file.file_hash.substring(0, 16) + '...';
     
     // Verification badge
     let verificationBadge = '';
@@ -333,9 +298,9 @@ function createFileItem(file) {
                     <div class="file-detail-value">${file.block_index}</div>
                 </div>
             </div>
-            <div class="file-detail hash-display">
-                <div class="file-detail-label">🔐 File Hash (SHA-256)</div>
-                <div class="file-detail-value hash-code" style="font-family: monospace; font-size: 12px; word-break: break-all; background: #f0f0f0; padding: 8px; border-radius: 4px; color: #d63384;">${fullHash}</div>
+            <div class="file-detail">
+                <div class="file-detail-label">File Hash (SHA-256)</div>
+                <div class="file-detail-value" title="${file.file_hash}">${shortHash}</div>
             </div>
             <div class="file-actions">
                 <button class="btn btn-download" onclick="initiateDownload('${file.file_hash}', '${file.file_name}', ${file.is_encrypted})">
@@ -354,9 +319,6 @@ function createFileItem(file) {
 
 // Initiate download
 function initiateDownload(fileHash, fileName, isEncrypted) {
-    // Show hash tracker when download starts
-    showHashTracker(fileHash, 'Preparing Download');
-    
     if (isEncrypted) {
         showDownloadModal(fileHash, fileName);
     } else {
@@ -370,18 +332,14 @@ function showDownloadModal(fileHash, fileName) {
     const modalBody = document.getElementById('downloadModalBody');
     
     modalBody.innerHTML = `
-        <p><strong>📄 File:</strong> ${fileName}</p>
-        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107;">
-            <p style="margin: 0 0 8px 0;"><strong>🔐 Downloading File with Hash:</strong></p>
-            <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #d63384; display: block; background: white; padding: 8px; border-radius: 4px;">${fileHash}</code>
-        </div>
+        <p><strong>File:</strong> ${fileName}</p>
         <p>🔒 This file is encrypted. Please enter the password to download.</p>
         <div class="form-group">
             <label for="downloadPassword">Password:</label>
             <input type="password" id="downloadPassword" placeholder="Enter password" required>
         </div>
         <button class="btn btn-primary" onclick="downloadEncryptedFile('${fileHash}', '${fileName}')">
-            🔓 Decrypt & Download
+            Download
         </button>
     `;
     
@@ -437,17 +395,7 @@ async function downloadFile(fileHash, fileName, password) {
             // Refresh stats to show new download
             await loadStats();
             
-            // Show hash in tracker
-            showHashTracker(fileHash, 'Downloaded File Hash');
-            
-            // Show success with hash
-            showStatus(`✅ File downloaded successfully!`, 'success');
-            
-            // Alert with hash details
-            alert(`✅ DOWNLOAD SUCCESSFUL!\n\n📄 File: ${fileName}\n🔐 Hash: ${fileHash}\n\nDownload recorded on blockchain.`);
-            
-            // Close modal if open
-            closeDownloadModal();
+            showStatus(`✓ File downloaded successfully!`, 'success');
         } else {
             const data = await response.json();
             showStatus(`✗ Error: ${data.error}`, 'error');
@@ -459,9 +407,6 @@ async function downloadFile(fileHash, fileName, password) {
 
 // Show file details modal
 async function showFileDetails(fileHash) {
-    // Show hash in tracker
-    showHashTracker(fileHash, 'Viewing File Details');
-    
     try {
         const response = await fetch(`${API_BASE_URL}/file/${fileHash}`);
         const file = await response.json();
@@ -477,12 +422,8 @@ async function showFileDetails(fileHash) {
             <div class="file-detail">
                 <strong>Name:</strong> ${file.file_name}
             </div>
-            <div class="file-detail" style="background: #fff3cd; padding: 12px; border-radius: 8px; border: 2px solid #ffc107;">
-                <strong>🔐 File Hash (SHA-256):</strong><br>
-                <code style="font-family: monospace; font-size: 13px; word-break: break-all; color: #d63384; display: block; margin-top: 8px; background: white; padding: 8px; border-radius: 4px;">${file.file_hash}</code>
-                <button class="btn btn-secondary" style="margin-top: 8px;" onclick="navigator.clipboard.writeText('${file.file_hash}'); alert('Hash copied to clipboard!')">
-                    📋 Copy Hash
-                </button>
+            <div class="file-detail">
+                <strong>Hash:</strong> <code>${file.file_hash}</code>
             </div>
             <div class="file-detail">
                 <strong>Size:</strong> ${formatFileSize(file.file_size)}
@@ -838,10 +779,7 @@ function createBlockItem(block) {
             <strong>File:</strong> ${block.data.file_name}${encrypted}${version}<br>
             <strong>Uploader:</strong> ${block.data.uploader}<br>
             <strong>Size:</strong> ${formatFileSize(block.data.file_size)}<br>
-            <div style="background: #e7f3ff; padding: 8px; border-radius: 4px; margin-top: 8px;">
-                <strong>🔐 File Hash:</strong><br>
-                <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #d63384;">${block.data.file_hash}</code>
-            </div>
+            <strong>Hash:</strong> ${block.data.file_hash.substring(0, 32)}...
         `;
     } else if (blockType === 'file_download') {
         dataPreview = `
@@ -862,11 +800,9 @@ function createBlockItem(block) {
                 <strong>Timestamp:</strong> ${timestamp}<br>
                 <strong>Nonce:</strong> ${block.nonce}<br>
                 ${dataPreview}
-                <div class="block-hash" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #0d6efd;">
-                    <strong>⛓️ Block Hash:</strong><br>
-                    <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #0d6efd; display: block; margin: 5px 0;">${block.hash}</code>
-                    <strong style="margin-top: 8px; display: block;">⛓️ Previous Hash:</strong><br>
-                    <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #6c757d; display: block; margin: 5px 0;">${block.previous_hash}</code>
+                <div class="block-hash">
+                    <strong>Hash:</strong> ${block.hash}<br>
+                    <strong>Previous Hash:</strong> ${block.previous_hash}
                 </div>
             </div>
         </div>
@@ -895,138 +831,6 @@ function formatTimestamp(isoString) {
         minute: '2-digit'
     };
     return date.toLocaleDateString('en-US', options);
-}
-
-// Verify blockchain with detailed hash information
-async function verifyBlockchainDetailed() {
-    const modal = document.getElementById('fileModal');
-    const modalBody = document.getElementById('modalBody');
-    
-    modalBody.innerHTML = '<div class="loading"><p>🔍 Verifying blockchain and collecting hash information...</p></div>';
-    modal.style.display = 'block';
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/blockchain/validate`);
-        const validation = await response.json();
-        
-        const statusIcon = validation.is_valid ? '✅' : '❌';
-        const statusText = validation.is_valid ? 'VALID' : 'INVALID';
-        const statusColor = validation.is_valid ? '#10b981' : '#ef4444';
-        
-        let blocksHTML = validation.blocks.map((block, index) => {
-            const allValid = block.hash_valid && block.proof_valid && block.chain_linked;
-            const blockStatus = allValid ? '✅' : '⚠️';
-            const blockColor = allValid ? '#10b981' : '#f59e0b';
-            
-            return `
-                <div class="verification-block" style="border-left: 4px solid ${blockColor}; padding: 15px; margin: 10px 0; background: #f9fafb; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h4 style="margin: 0; color: #1f2937;">Block #${block.index} ${blockStatus}</h4>
-                        <span style="font-size: 12px; color: #6b7280;">${block.data_type}</span>
-                    </div>
-                    
-                    ${block.file_name ? `
-                        <div style="margin: 5px 0; padding: 8px; background: #fef3c7; border-radius: 5px;">
-                            <strong>📄 File:</strong> ${block.file_name}
-                        </div>
-                    ` : ''}
-                    
-                    ${block.file_hash ? `
-                        <div style="margin: 5px 0; padding: 8px; background: #dbeafe; border-radius: 5px;">
-                            <strong>📎 File Hash:</strong>
-                            <div style="font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; color: #1e40af; margin-top: 5px;">
-                                ${block.file_hash}
-                            </div>
-                            <button onclick="copyToClipboard('${block.file_hash}')" style="margin-top: 5px; padding: 4px 8px; font-size: 11px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                📋 Copy
-                            </button>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="margin: 5px 0; padding: 8px; background: ${block.hash_valid ? '#d1fae5' : '#fee2e2'}; border-radius: 5px;">
-                        <strong>🔗 Block Hash:</strong> ${block.hash_valid ? '✓' : '✗'}
-                        <div style="font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; color: ${block.hash_valid ? '#065f46' : '#991b1b'}; margin-top: 5px;">
-                            ${block.hash}
-                        </div>
-                        <button onclick="copyToClipboard('${block.hash}')" style="margin-top: 5px; padding: 4px 8px; font-size: 11px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            📋 Copy
-                        </button>
-                    </div>
-                    
-                    ${block.index > 0 ? `
-                        <div style="margin: 5px 0; padding: 8px; background: ${block.chain_linked ? '#e0e7ff' : '#fee2e2'}; border-radius: 5px;">
-                            <strong>⬅️ Previous Hash:</strong> ${block.chain_linked ? '✓ Linked' : '✗ Broken'}
-                            <div style="font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; color: ${block.chain_linked ? '#3730a3' : '#991b1b'}; margin-top: 5px;">
-                                ${block.previous_hash}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                        <div style="padding: 8px; background: white; border-radius: 5px; font-size: 12px;">
-                            <strong>⛏️ Nonce:</strong> ${block.nonce}
-                        </div>
-                        <div style="padding: 8px; background: white; border-radius: 5px; font-size: 12px;">
-                            <strong>✅ PoW:</strong> ${block.proof_valid ? 'Valid' : 'Invalid'}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, ${statusColor}22 0%, ${statusColor}11 100%); border-radius: 10px; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: ${statusColor}; font-size: 32px;">${statusIcon} Blockchain ${statusText}</h2>
-                <p style="margin: 10px 0 0 0; color: #6b7280;">Total Blocks Verified: ${validation.total_blocks}</p>
-            </div>
-            
-            <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="margin: 0 0 10px 0; color: #1f2937;">🔍 Verification Summary</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                    <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${validation.total_blocks}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Total Blocks</div>
-                    </div>
-                    <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: bold; color: #10b981;">${validation.blocks.filter(b => b.hash_valid).length}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Valid Hashes</div>
-                    </div>
-                    <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: bold; color: #8b5cf6;">${validation.blocks.filter(b => b.file_hash).length}</div>
-                        <div style="font-size: 12px; color: #6b7280;">Files</div>
-                    </div>
-                </div>
-            </div>
-            
-            <h3 style="color: #1f2937; margin: 20px 0 10px 0;">📊 Detailed Block Verification</h3>
-            <div style="max-height: 500px; overflow-y: auto;">
-                ${blocksHTML}
-            </div>
-        `;
-        
-        // Show hash tracker with genesis block hash
-        if (validation.blocks.length > 0) {
-            showHashTracker(validation.blocks[0].hash, 'Genesis Block Hash');
-        }
-        
-    } catch (error) {
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <h2 style="color: #ef4444;">❌ Verification Error</h2>
-                <p style="color: #6b7280;">${error.message}</p>
-            </div>
-        `;
-    }
-}
-
-// Copy to clipboard helper
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showHashTracker(text, 'Hash Copied');
-        showStatus('📋 Hash copied to clipboard!', 'success');
-    }).catch(err => {
-        alert('Failed to copy: ' + err);
-    });
 }
 
 // Close modal on outside click

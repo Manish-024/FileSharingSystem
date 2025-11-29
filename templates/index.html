@@ -22,19 +22,6 @@
             <p class="subtitle">Encrypted • Verified • Decentralized</p>
         </header>
 
-        <!-- Hash Activity Tracker -->
-        <div id="hashTracker" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="flex: 1;">
-                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 5px;">🔐 ACTIVE HASH</div>
-                    <div id="activeHashDisplay" style="font-family: monospace; font-size: 11px; word-break: break-all; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 6px;"></div>
-                </div>
-                <button onclick="copyActiveHash()" style="background: rgba(255,255,255,0.3); border: none; padding: 10px 15px; border-radius: 6px; color: white; cursor: pointer; margin-left: 15px; font-weight: bold;">
-                    📋 Copy
-                </button>
-            </div>
-        </div>
-
         <!-- Main Tab Content -->
         <div id="homeTab" class="tab-content active">
             <!-- Stats Section -->
@@ -59,11 +46,11 @@
                     <div class="stat-value" id="verifiedFiles">0</div>
                     <div class="stat-label">✓ Verified</div>
                 </div>
-                <div class="stat-card" onclick="verifyBlockchainDetailed()" style="cursor: pointer;" title="Click to see detailed verification">
+                <div class="stat-card">
                     <div class="stat-value" id="chainValid">
                         <span class="status-indicator">✓</span>
                     </div>
-                    <div class="stat-label">🔍 Chain Valid (Click to Verify)</div>
+                    <div class="stat-label">Chain Valid</div>
                 </div>
             </div>
 
@@ -116,15 +103,6 @@
                     <button type="submit" class="btn btn-primary">📤 Upload File</button>
                 </form>
                 <div id="uploadStatus" class="status-message"></div>
-            </div>
-
-            <!-- Blockchain Verification -->
-            <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 25px;">
-                <h2 style="color: white; margin: 0 0 10px 0;">⛓️ Verify Blockchain Integrity</h2>
-                <p style="margin: 0 0 15px 0; opacity: 0.9;">Check all blocks and see complete hash verification</p>
-                <button class="btn" onclick="verifyBlockchainDetailed()" style="background: white; color: #667eea; font-weight: bold; font-size: 16px; padding: 12px 30px;">
-                    🔍 Verify Now & Show All Hashes
-                </button>
             </div>
 
             <!-- Search and Filter -->
