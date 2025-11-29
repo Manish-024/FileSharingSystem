@@ -1,6 +1,7 @@
 import hashlib
 import json
 import time
+import os
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
@@ -49,13 +50,20 @@ class Block:
 
 
 class Blockchain:
-    """Blockchain for file sharing system"""
+    """Blockchain for file sharing system with persistent storage"""
     
-    def __init__(self, difficulty: int = 2):
+    def __init__(self, difficulty: int = 2, storage_path: str = "data/blockchain.json"):
         self.chain: List[Block] = []
         self.difficulty = difficulty
         self.pending_transactions: List[Dict[str, Any]] = []
-        self.create_genesis_block()
+        self.storage_path = storage_path
+        
+        # Ensure data directory exists
+        os.makedirs(os.path.dirname(storage_path), exist_ok=True)
+        
+        # Load existing blockchain or create new one
+        if not self.load_from_disk():
+            self.create_genesis_block()
     
     def create_genesis_block(self):
         """Create the first block in the chain"""
@@ -65,6 +73,49 @@ class Blockchain:
         }, "0")
         genesis_block.mine_block(self.difficulty)
         self.chain.append(genesis_block)
+        self.save_to_disk()
+    
+    def save_to_disk(self):
+        """Save blockchain to disk for persistence"""
+        try:
+            blockchain_data = {
+                "difficulty": self.difficulty,
+                "chain": [block.to_dict() for block in self.chain]
+            }
+            with open(self.storage_path, 'w') as f:
+                json.dump(blockchain_data, f, indent=2)
+        except Exception as e:
+            print(f"Error saving blockchain: {e}")
+    
+    def load_from_disk(self) -> bool:
+        """Load blockchain from disk"""
+        try:
+            if not os.path.exists(self.storage_path):
+                return False
+            
+            with open(self.storage_path, 'r') as f:
+                blockchain_data = json.load(f)
+            
+            self.difficulty = blockchain_data.get("difficulty", self.difficulty)
+            
+            # Reconstruct blocks
+            for block_dict in blockchain_data.get("chain", []):
+                block = Block(
+                    index=block_dict["index"],
+                    timestamp=block_dict["timestamp"],
+                    data=block_dict["data"],
+                    previous_hash=block_dict["previous_hash"],
+                    nonce=block_dict["nonce"]
+                )
+                block.hash = block_dict["hash"]
+                self.chain.append(block)
+            
+            print(f"✓ Loaded blockchain with {len(self.chain)} blocks from disk")
+            return len(self.chain) > 0
+            
+        except Exception as e:
+            print(f"Error loading blockchain: {e}")
+            return False
     
     def get_latest_block(self) -> Block:
         """Get the most recent block in the chain"""
@@ -99,6 +150,7 @@ class Blockchain:
         
         new_block.mine_block(self.difficulty)
         self.chain.append(new_block)
+        self.save_to_disk()  # Persist to disk
         
         return new_block.to_dict()
     
@@ -122,6 +174,7 @@ class Blockchain:
         
         new_block.mine_block(self.difficulty)
         self.chain.append(new_block)
+        self.save_to_disk()  # Persist to disk
         
         return new_block.to_dict()
     

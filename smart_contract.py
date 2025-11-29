@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import json
+import os
 
 
 class SmartContract:
@@ -150,15 +151,23 @@ class SmartContract:
 
 
 class ContractManager:
-    """Manage smart contracts for files"""
+    """Manage smart contracts for files with persistence"""
     
-    def __init__(self):
+    def __init__(self, storage_path: str = "data/contracts.json"):
         self.contracts: Dict[str, SmartContract] = {}
+        self.storage_path = storage_path
+        
+        # Ensure data directory exists
+        os.makedirs(os.path.dirname(storage_path), exist_ok=True)
+        
+        # Load existing contracts
+        self.load_from_disk()
     
     def create_contract(self, file_hash: str, owner: str) -> SmartContract:
         """Create a new smart contract"""
         contract = SmartContract(file_hash, owner)
         self.contracts[file_hash] = contract
+        self.save_to_disk()  # Persist to disk
         return contract
     
     def get_contract(self, file_hash: str) -> Optional[SmartContract]:
@@ -168,3 +177,44 @@ class ContractManager:
     def get_all_contracts(self) -> List[Dict]:
         """Get all contracts"""
         return [contract.to_dict() for contract in self.contracts.values()]
+    
+    def save_to_disk(self):
+        """Save contracts to disk"""
+        try:
+            contracts_data = {
+                file_hash: contract.to_dict() 
+                for file_hash, contract in self.contracts.items()
+            }
+            with open(self.storage_path, 'w') as f:
+                json.dump(contracts_data, f, indent=2)
+        except Exception as e:
+            print(f"Error saving contracts: {e}")
+    
+    def load_from_disk(self):
+        """Load contracts from disk"""
+        try:
+            if not os.path.exists(self.storage_path):
+                return
+            
+            with open(self.storage_path, 'r') as f:
+                contracts_data = json.load(f)
+            
+            for file_hash, contract_dict in contracts_data.items():
+                contract = SmartContract(
+                    file_hash=contract_dict["file_hash"],
+                    owner=contract_dict["owner"]
+                )
+                # Restore contract state
+                contract.permissions = contract_dict.get("permissions", {})
+                contract.access_log = contract_dict.get("access_log", [])
+                contract.is_public = contract_dict.get("is_public", False)
+                contract.max_downloads = contract_dict.get("max_downloads")
+                contract.expiration_time = contract_dict.get("expiration_time")
+                contract.contract_id = contract_dict.get("contract_id")
+                
+                self.contracts[file_hash] = contract
+            
+            print(f"✓ Loaded {len(self.contracts)} contracts from disk")
+            
+        except Exception as e:
+            print(f"Error loading contracts: {e}")

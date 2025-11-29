@@ -1,14 +1,23 @@
 from datetime import datetime
 from typing import Dict, List
 import statistics
+import json
+import os
 
 
 class PeerVerification:
-    """System for peer verification and voting on files"""
+    """System for peer verification and voting on files with persistence"""
     
-    def __init__(self):
+    def __init__(self, storage_path: str = "data/verifications.json"):
         self.verifications: Dict[str, Dict] = {}  # file_hash -> verification data
         self.reputation: Dict[str, float] = {}  # user -> reputation score
+        self.storage_path = storage_path
+        
+        # Ensure data directory exists
+        os.makedirs(os.path.dirname(storage_path), exist_ok=True)
+        
+        # Load existing data
+        self.load_from_disk()
     
     def submit_verification(self, file_hash: str, user: str, 
                           is_authentic: bool, comment: str = ""):
@@ -47,6 +56,9 @@ class PeerVerification:
         
         # Update user reputation
         self._update_user_reputation(user)
+        
+        # Persist to disk
+        self.save_to_disk()
     
     def _calculate_authenticity_score(self, file_hash: str):
         """Calculate weighted authenticity score"""
@@ -170,3 +182,32 @@ class PeerVerification:
             "average_authenticity": round(statistics.mean(scores), 2) if scores else 0,
             "total_verifiers": len(self.reputation)
         }
+    
+    def save_to_disk(self):
+        """Save verification data to disk"""
+        try:
+            data = {
+                "verifications": self.verifications,
+                "reputation": self.reputation
+            }
+            with open(self.storage_path, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"Error saving verifications: {e}")
+    
+    def load_from_disk(self):
+        """Load verification data from disk"""
+        try:
+            if not os.path.exists(self.storage_path):
+                return
+            
+            with open(self.storage_path, 'r') as f:
+                data = json.load(f)
+            
+            self.verifications = data.get("verifications", {})
+            self.reputation = data.get("reputation", {})
+            
+            print(f"✓ Loaded {len(self.verifications)} verifications from disk")
+            
+        except Exception as e:
+            print(f"Error loading verifications: {e}")

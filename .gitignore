@@ -31,6 +31,10 @@ instance/
 uploads/*
 !uploads/.gitkeep
 
+# Persistent data
+data/
+!data/.gitkeep
+
 # Environment variables
 .env
 

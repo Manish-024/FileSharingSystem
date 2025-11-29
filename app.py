@@ -184,8 +184,10 @@ def download_file(file_hash):
             has_access, reason = contract.check_access(downloader)
             if not has_access:
                 contract.log_access(downloader, "download", False, reason)
+                contract_manager.save_to_disk()  # Persist access log
                 return jsonify({'error': f'Access denied: {reason}'}), 403
             contract.log_access(downloader, "download", True, reason)
+            contract_manager.save_to_disk()  # Persist access log
         
         file_path = file_info['file_path']
         
@@ -332,6 +334,7 @@ def grant_permission(file_hash):
             return jsonify({'error': 'Contract not found'}), 404
         
         contract.grant_permission(user, duration_hours, max_downloads)
+        contract_manager.save_to_disk()  # Persist changes
         
         return jsonify({
             'message': f'Permission granted to {user}',
@@ -353,6 +356,7 @@ def revoke_permission(file_hash):
             return jsonify({'error': 'Contract not found'}), 404
         
         success = contract.revoke_permission(user)
+        contract_manager.save_to_disk()  # Persist changes
         
         if success:
             return jsonify({'message': f'Permission revoked from {user}'}), 200
