@@ -897,6 +897,138 @@ function formatTimestamp(isoString) {
     return date.toLocaleDateString('en-US', options);
 }
 
+// Verify blockchain with detailed hash information
+async function verifyBlockchainDetailed() {
+    const modal = document.getElementById('fileModal');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalBody.innerHTML = '<div class="loading"><p>🔍 Verifying blockchain and collecting hash information...</p></div>';
+    modal.style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/blockchain/validate`);
+        const validation = await response.json();
+        
+        const statusIcon = validation.is_valid ? '✅' : '❌';
+        const statusText = validation.is_valid ? 'VALID' : 'INVALID';
+        const statusColor = validation.is_valid ? '#10b981' : '#ef4444';
+        
+        let blocksHTML = validation.blocks.map((block, index) => {
+            const allValid = block.hash_valid && block.proof_valid && block.chain_linked;
+            const blockStatus = allValid ? '✅' : '⚠️';
+            const blockColor = allValid ? '#10b981' : '#f59e0b';
+            
+            return `
+                <div class="verification-block" style="border-left: 4px solid ${blockColor}; padding: 15px; margin: 10px 0; background: #f9fafb; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0; color: #1f2937;">Block #${block.index} ${blockStatus}</h4>
+                        <span style="font-size: 12px; color: #6b7280;">${block.data_type}</span>
+                    </div>
+                    
+                    ${block.file_name ? `
+                        <div style="margin: 5px 0; padding: 8px; background: #fef3c7; border-radius: 5px;">
+                            <strong>📄 File:</strong> ${block.file_name}
+                        </div>
+                    ` : ''}
+                    
+                    ${block.file_hash ? `
+                        <div style="margin: 5px 0; padding: 8px; background: #dbeafe; border-radius: 5px;">
+                            <strong>📎 File Hash:</strong>
+                            <div style="font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; color: #1e40af; margin-top: 5px;">
+                                ${block.file_hash}
+                            </div>
+                            <button onclick="copyToClipboard('${block.file_hash}')" style="margin-top: 5px; padding: 4px 8px; font-size: 11px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                📋 Copy
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    <div style="margin: 5px 0; padding: 8px; background: ${block.hash_valid ? '#d1fae5' : '#fee2e2'}; border-radius: 5px;">
+                        <strong>🔗 Block Hash:</strong> ${block.hash_valid ? '✓' : '✗'}
+                        <div style="font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; color: ${block.hash_valid ? '#065f46' : '#991b1b'}; margin-top: 5px;">
+                            ${block.hash}
+                        </div>
+                        <button onclick="copyToClipboard('${block.hash}')" style="margin-top: 5px; padding: 4px 8px; font-size: 11px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            📋 Copy
+                        </button>
+                    </div>
+                    
+                    ${block.index > 0 ? `
+                        <div style="margin: 5px 0; padding: 8px; background: ${block.chain_linked ? '#e0e7ff' : '#fee2e2'}; border-radius: 5px;">
+                            <strong>⬅️ Previous Hash:</strong> ${block.chain_linked ? '✓ Linked' : '✗ Broken'}
+                            <div style="font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; color: ${block.chain_linked ? '#3730a3' : '#991b1b'}; margin-top: 5px;">
+                                ${block.previous_hash}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div style="padding: 8px; background: white; border-radius: 5px; font-size: 12px;">
+                            <strong>⛏️ Nonce:</strong> ${block.nonce}
+                        </div>
+                        <div style="padding: 8px; background: white; border-radius: 5px; font-size: 12px;">
+                            <strong>✅ PoW:</strong> ${block.proof_valid ? 'Valid' : 'Invalid'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        modalBody.innerHTML = `
+            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, ${statusColor}22 0%, ${statusColor}11 100%); border-radius: 10px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: ${statusColor}; font-size: 32px;">${statusIcon} Blockchain ${statusText}</h2>
+                <p style="margin: 10px 0 0 0; color: #6b7280;">Total Blocks Verified: ${validation.total_blocks}</p>
+            </div>
+            
+            <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 10px 0; color: #1f2937;">🔍 Verification Summary</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${validation.total_blocks}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Total Blocks</div>
+                    </div>
+                    <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #10b981;">${validation.blocks.filter(b => b.hash_valid).length}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Valid Hashes</div>
+                    </div>
+                    <div style="background: white; padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #8b5cf6;">${validation.blocks.filter(b => b.file_hash).length}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Files</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="color: #1f2937; margin: 20px 0 10px 0;">📊 Detailed Block Verification</h3>
+            <div style="max-height: 500px; overflow-y: auto;">
+                ${blocksHTML}
+            </div>
+        `;
+        
+        // Show hash tracker with genesis block hash
+        if (validation.blocks.length > 0) {
+            showHashTracker(validation.blocks[0].hash, 'Genesis Block Hash');
+        }
+        
+    } catch (error) {
+        modalBody.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <h2 style="color: #ef4444;">❌ Verification Error</h2>
+                <p style="color: #6b7280;">${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Copy to clipboard helper
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showHashTracker(text, 'Hash Copied');
+        showStatus('📋 Hash copied to clipboard!', 'success');
+    }).catch(err => {
+        alert('Failed to copy: ' + err);
+    });
+}
+
 // Close modal on outside click
 window.onclick = function(event) {
     const fileModal = document.getElementById('fileModal');

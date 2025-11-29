@@ -59,11 +59,11 @@
                     <div class="stat-value" id="verifiedFiles">0</div>
                     <div class="stat-label">✓ Verified</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="verifyBlockchainDetailed()" style="cursor: pointer;" title="Click to see detailed verification">
                     <div class="stat-value" id="chainValid">
                         <span class="status-indicator">✓</span>
                     </div>
-                    <div class="stat-label">Chain Valid</div>
+                    <div class="stat-label">🔍 Chain Valid (Click to Verify)</div>
                 </div>
             </div>
 
@@ -116,6 +116,15 @@
                     <button type="submit" class="btn btn-primary">📤 Upload File</button>
                 </form>
                 <div id="uploadStatus" class="status-message"></div>
+            </div>
+
+            <!-- Blockchain Verification -->
+            <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 25px;">
+                <h2 style="color: white; margin: 0 0 10px 0;">⛓️ Verify Blockchain Integrity</h2>
+                <p style="margin: 0 0 15px 0; opacity: 0.9;">Check all blocks and see complete hash verification</p>
+                <button class="btn" onclick="verifyBlockchainDetailed()" style="background: white; color: #667eea; font-weight: bold; font-size: 16px; padding: 12px 30px;">
+                    🔍 Verify Now & Show All Hashes
+                </button>
             </div>
 
             <!-- Search and Filter -->

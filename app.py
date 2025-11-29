@@ -263,10 +263,45 @@ def get_blockchain():
 
 @app.route('/api/blockchain/validate', methods=['GET'])
 def validate_blockchain():
-    """Validate the blockchain"""
+    """Validate the blockchain with detailed hash information"""
     try:
         is_valid = blockchain.is_chain_valid()
-        return jsonify({'is_valid': is_valid}), 200
+        
+        # Get detailed validation info with all hashes
+        validation_details = {
+            'is_valid': is_valid,
+            'total_blocks': len(blockchain.chain),
+            'blocks': []
+        }
+        
+        for i, block in enumerate(blockchain.chain):
+            block_info = {
+                'index': block.index,
+                'hash': block.hash,
+                'previous_hash': block.previous_hash,
+                'timestamp': block.timestamp,
+                'nonce': block.nonce,
+                'data_type': block.data.get('type', 'unknown'),
+                'calculated_hash': block.calculate_hash(),
+                'hash_valid': block.hash == block.calculate_hash(),
+                'proof_valid': block.hash.startswith("0" * blockchain.difficulty)
+            }
+            
+            # Add file hash if it's a file upload
+            if block.data.get('type') == 'file_upload':
+                block_info['file_hash'] = block.data.get('file_hash')
+                block_info['file_name'] = block.data.get('file_name')
+            
+            # Check chain linkage
+            if i > 0:
+                previous_block = blockchain.chain[i - 1]
+                block_info['chain_linked'] = block.previous_hash == previous_block.hash
+            else:
+                block_info['chain_linked'] = True  # Genesis block
+            
+            validation_details['blocks'].append(block_info)
+        
+        return jsonify(validation_details), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
