@@ -203,13 +203,12 @@ function showStatus(message, type) {
     const statusDiv = document.getElementById('uploadStatus');
     statusDiv.textContent = message;
     statusDiv.className = `status-message ${type}`;
+    statusDiv.style.display = '';  // Remove inline style to let CSS take over
     
-    // Auto-hide after 5 seconds for success messages
-    if (type === 'success') {
-        setTimeout(() => {
-            statusDiv.style.display = 'none';
-        }, 5000);
-    }
+    // Auto-hide after 8 seconds for all messages
+    setTimeout(() => {
+        statusDiv.className = 'status-message';  // Remove type class to hide
+    }, 8000);
 }
 
 // Load files from blockchain
