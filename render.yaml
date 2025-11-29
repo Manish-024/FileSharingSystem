@@ -8,7 +8,13 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
       - key: BLOCKCHAIN_DIFFICULTY
         value: 2
+      - key: HOST
+        value: 0.0.0.0
       - key: PYTHON_VERSION
         value: 3.13.0
