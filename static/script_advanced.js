@@ -86,9 +86,7 @@ function switchTab(tabName) {
     }
     
     // Load tab-specific data
-    if (tabName === 'analytics') {
-        loadAnalytics();
-    } else if (tabName === 'verification') {
+    if (tabName === 'verification') {
         loadVerificationStats();
     } else if (tabName === 'blockchain') {
         loadBlockchain();
@@ -1046,11 +1044,6 @@ async function syncAllData() {
         // Reload files if on home tab
         if (currentTab === 'home') {
             await loadFiles();
-        }
-        
-        // Reload analytics if on analytics tab
-        if (currentTab === 'analytics') {
-            await loadAnalytics();
         }
         
         // Reload verification stats if on verification tab

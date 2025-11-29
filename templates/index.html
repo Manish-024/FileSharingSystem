@@ -11,7 +11,6 @@
     <!-- Navigation Tabs -->
     <nav class="nav-tabs">
         <button class="nav-tab active" onclick="switchTab('home')">🏠 Home</button>
-        <button class="nav-tab" onclick="switchTab('analytics')">📊 Analytics</button>
         <button class="nav-tab" onclick="switchTab('verification')">✓ Verification</button>
         <button class="nav-tab" onclick="switchTab('blockchain')">⛓️ Blockchain</button>
     </nav>
@@ -157,31 +156,6 @@
                 </div>
                 <div id="filesList" class="files-list">
                     <p class="loading">Loading files...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Analytics Tab -->
-        <div id="analyticsTab" class="tab-content">
-            <div class="card">
-                <h2>📊 Analytics Dashboard</h2>
-                <div class="analytics-container">
-                    <div class="chart-container">
-                        <h3>Activity Timeline</h3>
-                        <canvas id="activityChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>File Type Distribution</h3>
-                        <canvas id="fileTypeChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Top Uploaders</h3>
-                        <canvas id="uploadersChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Hourly Activity</h3>
-                        <canvas id="hourlyChart"></canvas>
-                    </div>
                 </div>
             </div>
         </div>
