@@ -161,11 +161,21 @@ async function handleFileUpload(event) {
         const data = await response.json();
         
         if (response.ok) {
-            let message = `✓ File uploaded successfully! Block #${data.block.index} mined.`;
+            // Show detailed success message with hash
+            let message = `✅ File uploaded successfully!\n\n`;
+            message += `📦 Block #${data.block.index} mined\n`;
+            message += `🔐 File Hash: ${data.file_hash}\n`;
+            message += `📄 File Name: ${data.file_name}\n`;
+            message += `📊 Size: ${formatFileSize(data.file_size)}\n`;
             if (data.is_encrypted) {
-                message += ' 🔒 File is encrypted.';
+                message += '🔒 File is ENCRYPTED\n';
             }
+            message += `🆔 Contract ID: ${data.contract_id}`;
+            
             showStatus(message, 'success');
+            
+            // Show hash in alert as well
+            alert(`✅ UPLOAD SUCCESSFUL!\n\n🔐 Your File Hash (SHA-256):\n${data.file_hash}\n\nThis unique hash identifies your file on the blockchain.\nSave this hash for reference!`);
             
             // Reset form
             event.target.reset();
@@ -247,7 +257,7 @@ async function loadFiles() {
 function createFileItem(file) {
     const fileSize = formatFileSize(file.file_size);
     const timestamp = formatTimestamp(file.timestamp);
-    const shortHash = file.file_hash.substring(0, 16) + '...';
+    const fullHash = file.file_hash; // Show FULL hash, not truncated
     
     // Verification badge
     let verificationBadge = '';
@@ -298,9 +308,9 @@ function createFileItem(file) {
                     <div class="file-detail-value">${file.block_index}</div>
                 </div>
             </div>
-            <div class="file-detail">
-                <div class="file-detail-label">File Hash (SHA-256)</div>
-                <div class="file-detail-value" title="${file.file_hash}">${shortHash}</div>
+            <div class="file-detail hash-display">
+                <div class="file-detail-label">🔐 File Hash (SHA-256)</div>
+                <div class="file-detail-value hash-code" style="font-family: monospace; font-size: 12px; word-break: break-all; background: #f0f0f0; padding: 8px; border-radius: 4px; color: #d63384;">${fullHash}</div>
             </div>
             <div class="file-actions">
                 <button class="btn btn-download" onclick="initiateDownload('${file.file_hash}', '${file.file_name}', ${file.is_encrypted})">
@@ -422,8 +432,12 @@ async function showFileDetails(fileHash) {
             <div class="file-detail">
                 <strong>Name:</strong> ${file.file_name}
             </div>
-            <div class="file-detail">
-                <strong>Hash:</strong> <code>${file.file_hash}</code>
+            <div class="file-detail" style="background: #fff3cd; padding: 12px; border-radius: 8px; border: 2px solid #ffc107;">
+                <strong>🔐 File Hash (SHA-256):</strong><br>
+                <code style="font-family: monospace; font-size: 13px; word-break: break-all; color: #d63384; display: block; margin-top: 8px; background: white; padding: 8px; border-radius: 4px;">${file.file_hash}</code>
+                <button class="btn btn-secondary" style="margin-top: 8px;" onclick="navigator.clipboard.writeText('${file.file_hash}'); alert('Hash copied to clipboard!')">
+                    📋 Copy Hash
+                </button>
             </div>
             <div class="file-detail">
                 <strong>Size:</strong> ${formatFileSize(file.file_size)}
@@ -779,7 +793,10 @@ function createBlockItem(block) {
             <strong>File:</strong> ${block.data.file_name}${encrypted}${version}<br>
             <strong>Uploader:</strong> ${block.data.uploader}<br>
             <strong>Size:</strong> ${formatFileSize(block.data.file_size)}<br>
-            <strong>Hash:</strong> ${block.data.file_hash.substring(0, 32)}...
+            <div style="background: #e7f3ff; padding: 8px; border-radius: 4px; margin-top: 8px;">
+                <strong>🔐 File Hash:</strong><br>
+                <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #d63384;">${block.data.file_hash}</code>
+            </div>
         `;
     } else if (blockType === 'file_download') {
         dataPreview = `
@@ -800,9 +817,11 @@ function createBlockItem(block) {
                 <strong>Timestamp:</strong> ${timestamp}<br>
                 <strong>Nonce:</strong> ${block.nonce}<br>
                 ${dataPreview}
-                <div class="block-hash">
-                    <strong>Hash:</strong> ${block.hash}<br>
-                    <strong>Previous Hash:</strong> ${block.previous_hash}
+                <div class="block-hash" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #0d6efd;">
+                    <strong>⛓️ Block Hash:</strong><br>
+                    <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #0d6efd; display: block; margin: 5px 0;">${block.hash}</code>
+                    <strong style="margin-top: 8px; display: block;">⛓️ Previous Hash:</strong><br>
+                    <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #6c757d; display: block; margin: 5px 0;">${block.previous_hash}</code>
                 </div>
             </div>
         </div>
