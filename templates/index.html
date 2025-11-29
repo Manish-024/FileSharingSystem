@@ -22,6 +22,19 @@
             <p class="subtitle">Encrypted • Verified • Decentralized</p>
         </header>
 
+        <!-- Hash Tracker Banner -->
+        <div id="hashTracker" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;" id="hashLabel">Active Hash</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 13px; word-break: break-all;" id="activeHashDisplay"></div>
+                </div>
+                <button onclick="copyActiveHash()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                    📋 Copy
+                </button>
+            </div>
+        </div>
+
         <!-- Main Tab Content -->
                 <!-- Home Tab -->
         <div id="homeTab" class="tab-content active">

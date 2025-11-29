@@ -5,6 +5,36 @@ const API_BASE_URL = 'https://filesharingsystem-5rd1.onrender.com/api';
 let currentUser = '';
 let currentTab = 'home';
 let charts = {};
+let activeHash = ''; // Track currently active hash
+
+// Hash Tracker Functions
+function showHashTracker(hash, label = 'Active Hash') {
+    activeHash = hash;
+    const tracker = document.getElementById('hashTracker');
+    const display = document.getElementById('activeHashDisplay');
+    const labelElement = document.getElementById('hashLabel');
+    
+    if (tracker && display && labelElement) {
+        labelElement.textContent = label;
+        display.textContent = hash;
+        tracker.style.display = 'block';
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            tracker.style.display = 'none';
+        }, 10000);
+    }
+}
+
+function copyActiveHash() {
+    if (activeHash) {
+        navigator.clipboard.writeText(activeHash).then(() => {
+            alert('Hash copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    }
+}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
@@ -161,19 +191,30 @@ async function handleFileUpload(event) {
         const data = await response.json();
         
         if (response.ok) {
+            console.log('Upload success data:', data);
+            
             // Show hash tracker
             if (data.file_hash) {
-                showHashTracker(data.file_hash, 'File Uploaded Successfully');
+                try {
+                    showHashTracker(data.file_hash, 'File Uploaded Successfully');
+                } catch (e) {
+                    console.error('Error showing hash tracker:', e);
+                }
             }
             
             // Show detailed alert with hash
-            let alertMessage = `✓ File uploaded successfully!\n\n`;
-            alertMessage += `📦 Block: #${data.block.index}\n`;
-            alertMessage += `📎 Hash: ${data.file_hash}\n`;
-            if (data.is_encrypted) {
-                alertMessage += `🔒 Encryption: Enabled\n`;
+            try {
+                let alertMessage = `✓ File uploaded successfully!\n\n`;
+                alertMessage += `📦 Block: #${data.block.index}\n`;
+                alertMessage += `📎 Hash: ${data.file_hash}\n`;
+                if (data.is_encrypted) {
+                    alertMessage += `🔒 Encryption: Enabled\n`;
+                }
+                alert(alertMessage);
+            } catch (e) {
+                console.error('Error showing alert:', e);
+                alert('✓ File uploaded successfully!');
             }
-            alert(alertMessage);
             
             // Show status message
             let message = `✓ File uploaded successfully! Block #${data.block.index} mined.`;
