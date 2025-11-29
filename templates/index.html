@@ -23,9 +23,17 @@
         </header>
 
         <!-- Main Tab Content -->
+                <!-- Home Tab -->
         <div id="homeTab" class="tab-content active">
-            <!-- Stats Section -->
-            <div class="stats-container" id="statsContainer">
+            <!-- Sync Button -->
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button class="btn btn-secondary" onclick="syncAllData()" title="Sync all data across devices">
+                    🔄 Sync Now
+                </button>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-value" id="totalBlocks">0</div>
                     <div class="stat-label">Total Blocks</div>

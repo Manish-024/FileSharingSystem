@@ -161,6 +161,21 @@ async function handleFileUpload(event) {
         const data = await response.json();
         
         if (response.ok) {
+            // Show hash tracker
+            if (data.file_hash) {
+                showHashTracker(data.file_hash, 'File Uploaded Successfully');
+            }
+            
+            // Show detailed alert with hash
+            let alertMessage = `✓ File uploaded successfully!\n\n`;
+            alertMessage += `📦 Block: #${data.block.index}\n`;
+            alertMessage += `📎 Hash: ${data.file_hash}\n`;
+            if (data.is_encrypted) {
+                alertMessage += `🔒 Encryption: Enabled\n`;
+            }
+            alert(alertMessage);
+            
+            // Show status message
             let message = `✓ File uploaded successfully! Block #${data.block.index} mined.`;
             if (data.is_encrypted) {
                 message += ' 🔒 File is encrypted.';
@@ -172,7 +187,7 @@ async function handleFileUpload(event) {
             document.getElementById('passwordGroup').style.display = 'none';
             document.getElementById('isPublic').checked = true;
             
-            // Refresh data
+            // Refresh all data to sync counts
             await loadStats();
             await loadFiles();
         } else {
@@ -392,8 +407,18 @@ async function downloadFile(fileHash, fileName, password) {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            // Refresh stats to show new download
+            // Show hash tracker
+            showHashTracker(fileHash, 'File Downloaded Successfully');
+            
+            // Show success alert with hash
+            alert(`✓ File downloaded successfully!\n\n📎 Hash: ${fileHash}\n📄 File: ${fileName}`);
+            
+            // Refresh stats and files to show new download count
             await loadStats();
+            await loadFiles();
+            
+            // Close download modal
+            closeDownloadModal();
             
             showStatus(`✓ File downloaded successfully!`, 'success');
         } else {
@@ -832,6 +857,45 @@ function formatTimestamp(isoString) {
     };
     return date.toLocaleDateString('en-US', options);
 }
+
+// Comprehensive sync function - refreshes all data
+async function syncAllData() {
+    try {
+        console.log('🔄 Syncing all data...');
+        
+        // Reload stats
+        await loadStats();
+        
+        // Reload files if on home tab
+        if (currentTab === 'home') {
+            await loadFiles();
+        }
+        
+        // Reload analytics if on analytics tab
+        if (currentTab === 'analytics') {
+            await loadAnalytics();
+        }
+        
+        // Reload verification stats if on verification tab
+        if (currentTab === 'verification') {
+            await loadVerificationStats();
+        }
+        
+        // Reload blockchain if on blockchain tab
+        if (currentTab === 'blockchain') {
+            await loadBlockchain();
+        }
+        
+        console.log('✅ Data synced successfully');
+        showStatus('✓ Data synchronized', 'success');
+    } catch (error) {
+        console.error('Error syncing data:', error);
+        showStatus('⚠️ Sync error', 'error');
+    }
+}
+
+// Auto-sync every 30 seconds to keep data fresh across devices
+setInterval(syncAllData, 30000);
 
 // Close modal on outside click
 window.onclick = function(event) {

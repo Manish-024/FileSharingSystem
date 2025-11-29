@@ -213,7 +213,11 @@ class Blockchain:
                     "uploader": block.data.get("uploader"),
                     "file_path": block.data.get("file_path"),
                     "timestamp": block.data.get("timestamp"),
-                    "block_index": block.index
+                    "block_index": block.index,
+                    "is_encrypted": block.data.get("is_encrypted", False),
+                    "salt": block.data.get("salt"),
+                    "version": block.data.get("version", 1),
+                    "previous_version_hash": block.data.get("previous_version_hash")
                 }
         
         return list(file_dict.values())
@@ -230,7 +234,11 @@ class Blockchain:
                     "uploader": block.data.get("uploader"),
                     "file_path": block.data.get("file_path"),
                     "timestamp": block.data.get("timestamp"),
-                    "block_index": block.index
+                    "block_index": block.index,
+                    "is_encrypted": block.data.get("is_encrypted", False),
+                    "salt": block.data.get("salt"),
+                    "version": block.data.get("version", 1),
+                    "previous_version_hash": block.data.get("previous_version_hash")
                 }
         return None
     
