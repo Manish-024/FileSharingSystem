@@ -1,0 +1,41 @@
+{
+  "name": "blockchain-file-sharing",
+  "description": "Advanced Blockchain File Sharing System with Encryption and Smart Contracts",
+  "keywords": [
+    "blockchain",
+    "file-sharing",
+    "encryption",
+    "smart-contracts",
+    "python",
+    "flask"
+  ],
+  "website": "https://github.com/yourusername/blockchain-file-sharing",
+  "repository": "https://github.com/yourusername/blockchain-file-sharing",
+  "logo": "",
+  "success_url": "/",
+  "env": {
+    "SECRET_KEY": {
+      "description": "Secret key for Flask sessions",
+      "generator": "secret"
+    },
+    "FLASK_ENV": {
+      "description": "Flask environment",
+      "value": "production"
+    },
+    "BLOCKCHAIN_DIFFICULTY": {
+      "description": "Blockchain mining difficulty (1-5)",
+      "value": "2"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}

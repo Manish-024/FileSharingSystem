@@ -1,0 +1,14 @@
+# Render.com configuration
+services:
+  - type: web
+    name: blockchain-file-sharing
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: BLOCKCHAIN_DIFFICULTY
+        value: 2
+      - key: PYTHON_VERSION
+        value: 3.13.0

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Based Document Sharing System</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('home')">🏠 Home</button>
+        <button class="nav-tab" onclick="switchTab('analytics')">📊 Analytics</button>
+        <button class="nav-tab" onclick="switchTab('verification')">✓ Verification</button>
+        <button class="nav-tab" onclick="switchTab('blockchain')">⛓️ Blockchain</button>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>🔗 Blockchain Based Document Sharing</h1>
+            <p class="subtitle">Encrypted • Verified • Decentralized</p>
+        </header>
+
+        <!-- Main Tab Content -->
+        <div id="homeTab" class="tab-content active">
+            <!-- Stats Section -->
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalBlocks">0</div>
+                    <div class="stat-label">Total Blocks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUploads">0</div>
+                    <div class="stat-label">Total Uploads</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDownloads">0</div>
+                    <div class="stat-label">Total Downloads</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="encryptedFiles">0</div>
+                    <div class="stat-label">🔒 Encrypted</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="verifiedFiles">0</div>
+                    <div class="stat-label">✓ Verified</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="chainValid">
+                        <span class="status-indicator">✓</span>
+                    </div>
+                    <div class="stat-label">Chain Valid</div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="card">
+                <h2>📤 Upload File</h2>
+                <form id="uploadForm" class="upload-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uploader">Your Name:</label>
+                            <input type="text" id="uploader" name="uploader" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fileInput">Select File:</label>
+                            <input type="file" id="fileInput" name="file" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Options -->
+                    <div class="advanced-options">
+                        <h3>🔐 Security Options</h3>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="encryptFile" onchange="togglePassword()">
+                                Encrypt file with password
+                            </label>
+                        </div>
+                        <div class="form-group" id="passwordGroup" style="display:none;">
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" placeholder="Enter encryption password">
+                        </div>
+                        
+                        <h3>📋 Access Control</h3>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="isPublic" checked>
+                                Public file (anyone can download)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxDownloads">Max Downloads (optional):</label>
+                            <input type="number" id="maxDownloads" min="1" placeholder="Unlimited">
+                        </div>
+                        <div class="form-group">
+                            <label for="expirationHours">Expiration Hours (optional):</label>
+                            <input type="number" id="expirationHours" min="1" placeholder="Never expires">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">📤 Upload File</button>
+                </form>
+                <div id="uploadStatus" class="status-message"></div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="card">
+                <h2>🔍 Search Files</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchQuery" placeholder="Search by filename...">
+                    <select id="fileTypeFilter">
+                        <option value="">All Types</option>
+                        <option value="pdf">PDF</option>
+                        <option value="txt">Text</option>
+                        <option value="jpg">JPG</option>
+                        <option value="png">PNG</option>
+                        <option value="zip">ZIP</option>
+                        <option value="mp4">MP4</option>
+                        <option value="mp3">MP3</option>
+                    </select>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="encryptedOnly">
+                        Encrypted only
+                    </label>
+                    <button class="btn btn-secondary" onclick="searchFiles()">Search</button>
+                </div>
+            </div>
+
+            <!-- Files List Section -->
+            <div class="card">
+                <div class="section-header">
+                    <h2>📁 Shared Files</h2>
+                    <button class="btn btn-secondary" onclick="refreshFiles()">🔄 Refresh</button>
+                </div>
+                <div id="filesList" class="files-list">
+                    <p class="loading">Loading files...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analyticsTab" class="tab-content">
+            <div class="card">
+                <h2>📊 Analytics Dashboard</h2>
+                <div class="analytics-container">
+                    <div class="chart-container">
+                        <h3>Activity Timeline</h3>
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>File Type Distribution</h3>
+                        <canvas id="fileTypeChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Top Uploaders</h3>
+                        <canvas id="uploadersChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Hourly Activity</h3>
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification Tab -->
+        <div id="verificationTab" class="tab-content">
+            <div class="card">
+                <h2>✓ Peer Verification System</h2>
+                <div class="verification-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="verifiedFilesCount">0</div>
+                        <div class="stat-label">Verified Files</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalVotes">0</div>
+                        <div class="stat-label">Total Votes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgAuthenticity">0%</div>
+                        <div class="stat-label">Avg Authenticity</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Top Verifiers</h3>
+                <div id="topVerifiers" class="verifiers-list"></div>
+            </div>
+        </div>
+
+        <!-- Blockchain Tab -->
+        <div id="blockchainTab" class="tab-content">
+            <div class="card">
+                <div class="section-header">
+                    <h2>⛓️ Blockchain Explorer</h2>
+                    <button class="btn btn-secondary" onclick="loadBlockchain()">🔄 Refresh</button>
+                </div>
+                <div id="blockchainList" class="blockchain-list">
+                    <p class="loading">Loading blockchain...</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built with ❤️ using Advanced Blockchain Technology</p>
+            <p class="small">🔐 Encryption • ✓ Verification • 🤝 Smart Contracts • 📊 Analytics</p>
+        </footer>
+    </div>
+
+    <!-- File Details Modal -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Download Modal -->
+    <div id="downloadModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDownloadModal()">&times;</span>
+            <h2>Download File</h2>
+            <div id="downloadModalBody"></div>
+        </div>
+    </div>
+
+    <script src="/static/script_advanced.js"></script>
+</body>
+</html>

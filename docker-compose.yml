@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+      - PORT=5001
+      - BLOCKCHAIN_DIFFICULTY=2
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
