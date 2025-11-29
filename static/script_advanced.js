@@ -639,140 +639,277 @@ async function refreshFiles() {
 // Load analytics
 async function loadAnalytics() {
     try {
+        console.log('Loading analytics...');
         const response = await fetch(`${API_BASE_URL}/analytics`);
         const data = await response.json();
         
+        console.log('Analytics data received:', data);
+        
+        // Check if data exists
+        if (!data) {
+            console.error('No analytics data received');
+            return;
+        }
+        
         // Activity Timeline Chart
-        createActivityChart(data.activity_timeline);
+        if (data.activity_timeline && data.activity_timeline.length > 0) {
+            createActivityChart(data.activity_timeline);
+        } else {
+            console.warn('No activity timeline data');
+            // Show placeholder
+            const ctx = document.getElementById('activityChart');
+            if (ctx) {
+                ctx.parentElement.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No activity data yet. Upload some files to see analytics!</p>';
+            }
+        }
         
         // File Type Distribution
-        createFileTypeChart(data.file_type_distribution);
+        if (data.file_type_distribution && data.file_type_distribution.length > 0) {
+            createFileTypeChart(data.file_type_distribution);
+        } else {
+            console.warn('No file type data');
+            const ctx = document.getElementById('fileTypeChart');
+            if (ctx) {
+                ctx.parentElement.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No file type data yet.</p>';
+            }
+        }
         
         // Top Uploaders
-        createUploadersChart(data.top_uploaders);
+        if (data.top_uploaders && data.top_uploaders.length > 0) {
+            createUploadersChart(data.top_uploaders);
+        } else {
+            console.warn('No uploaders data');
+            const ctx = document.getElementById('uploadersChart');
+            if (ctx) {
+                ctx.parentElement.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No uploaders data yet.</p>';
+            }
+        }
         
         // Hourly Activity
-        createHourlyChart(data.hourly_activity);
+        if (data.hourly_activity && data.hourly_activity.length > 0) {
+            createHourlyChart(data.hourly_activity);
+        } else {
+            console.warn('No hourly activity data');
+            const ctx = document.getElementById('hourlyChart');
+            if (ctx) {
+                ctx.parentElement.innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">No hourly activity data yet.</p>';
+            }
+        }
+        
+        console.log('✓ Analytics loaded successfully');
         
     } catch (error) {
         console.error('Error loading analytics:', error);
+        // Show error message in UI
+        document.querySelectorAll('canvas').forEach(canvas => {
+            if (canvas.id.includes('Chart')) {
+                canvas.parentElement.innerHTML = `<p style="text-align: center; padding: 40px; color: #ef4444;">Error loading analytics: ${error.message}</p>`;
+            }
+        });
     }
 }
 
 // Create activity timeline chart
 function createActivityChart(data) {
-    const ctx = document.getElementById('activityChart');
-    
-    if (charts.activity) {
-        charts.activity.destroy();
-    }
-    
-    charts.activity = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.map(d => d.date),
-            datasets: [{
-                label: 'Uploads',
-                data: data.map(d => d.uploads),
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                tension: 0.4
-            }, {
-                label: 'Downloads',
-                data: data.map(d => d.downloads),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: true
+    try {
+        const ctx = document.getElementById('activityChart');
+        if (!ctx) {
+            console.error('Activity chart canvas not found');
+            return;
+        }
+        
+        if (charts.activity) {
+            charts.activity.destroy();
+        }
+        
+        charts.activity = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.date),
+                datasets: [{
+                    label: 'Uploads',
+                    data: data.map(d => d.uploads || 0),
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Downloads',
+                    data: data.map(d => d.downloads || 0),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
                 }
             }
-        }
-    });
+        });
+        console.log('✓ Activity chart created');
+    } catch (error) {
+        console.error('Error creating activity chart:', error);
+    }
 }
 
 // Create file type chart
 function createFileTypeChart(data) {
-    const ctx = document.getElementById('fileTypeChart');
-    
-    if (charts.fileType) {
-        charts.fileType.destroy();
-    }
-    
-    charts.fileType = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: data.map(d => d.type.toUpperCase()),
-            datasets: [{
-                data: data.map(d => d.count),
-                backgroundColor: [
-                    '#667eea', '#764ba2', '#10b981', '#f59e0b',
-                    '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true
+    try {
+        const ctx = document.getElementById('fileTypeChart');
+        if (!ctx) {
+            console.error('File type chart canvas not found');
+            return;
         }
-    });
+        
+        if (charts.fileType) {
+            charts.fileType.destroy();
+        }
+        
+        charts.fileType = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.map(d => d.type.toUpperCase()),
+                datasets: [{
+                    data: data.map(d => d.count),
+                    backgroundColor: [
+                        '#667eea', '#764ba2', '#10b981', '#f59e0b',
+                        '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right'
+                    }
+                }
+            }
+        });
+        console.log('✓ File type chart created');
+    } catch (error) {
+        console.error('Error creating file type chart:', error);
+    }
 }
 
 // Create uploaders chart
 function createUploadersChart(data) {
-    const ctx = document.getElementById('uploadersChart');
-    
-    if (charts.uploaders) {
-        charts.uploaders.destroy();
-    }
-    
-    charts.uploaders = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map(d => d.user),
-            datasets: [{
-                label: 'Uploads',
-                data: data.map(d => d.count),
-                backgroundColor: '#667eea'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            indexAxis: 'y'
+    try {
+        const ctx = document.getElementById('uploadersChart');
+        if (!ctx) {
+            console.error('Uploaders chart canvas not found');
+            return;
         }
-    });
+        
+        if (charts.uploaders) {
+            charts.uploaders.destroy();
+        }
+        
+        charts.uploaders = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.user),
+                datasets: [{
+                    label: 'Uploads',
+                    data: data.map(d => d.count),
+                    backgroundColor: '#667eea'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        console.log('✓ Uploaders chart created');
+    } catch (error) {
+        console.error('Error creating uploaders chart:', error);
+    }
 }
 
 // Create hourly chart
 function createHourlyChart(data) {
-    const ctx = document.getElementById('hourlyChart');
-    
-    if (charts.hourly) {
-        charts.hourly.destroy();
-    }
-    
-    charts.hourly = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map(d => `${d.hour}:00`),
-            datasets: [{
-                label: 'Activity',
-                data: data.map(d => d.uploads + d.downloads),
-                backgroundColor: '#667eea'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true
+    try {
+        const ctx = document.getElementById('hourlyChart');
+        if (!ctx) {
+            console.error('Hourly chart canvas not found');
+            return;
         }
-    });
+        
+        if (charts.hourly) {
+            charts.hourly.destroy();
+        }
+        
+        charts.hourly = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => `${d.hour}:00`),
+                datasets: [{
+                    label: 'Uploads',
+                    data: data.map(d => d.uploads || 0),
+                    backgroundColor: '#667eea'
+                }, {
+                    label: 'Downloads',
+                    data: data.map(d => d.downloads || 0),
+                    backgroundColor: '#10b981'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        console.log('✓ Hourly chart created');
+    } catch (error) {
+        console.error('Error creating hourly chart:', error);
+    }
 }
 
 // Load verification stats
