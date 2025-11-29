@@ -5,6 +5,28 @@ const API_BASE_URL = 'https://filesharingsystem-5rd1.onrender.com/api';
 let currentUser = '';
 let currentTab = 'home';
 let charts = {};
+let activeHash = ''; // Track currently active hash
+
+// Hash Tracker Functions
+function showHashTracker(hash, label = 'Active Hash') {
+    const tracker = document.getElementById('hashTracker');
+    const display = document.getElementById('activeHashDisplay');
+    activeHash = hash;
+    display.textContent = hash;
+    tracker.style.display = 'block';
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        tracker.style.display = 'none';
+    }, 10000);
+}
+
+function copyActiveHash() {
+    if (activeHash) {
+        navigator.clipboard.writeText(activeHash);
+        alert('✅ Hash copied to clipboard!\n\n' + activeHash);
+    }
+}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
@@ -174,6 +196,9 @@ async function handleFileUpload(event) {
             
             showStatus(message, 'success');
             
+            // Show hash in tracker
+            showHashTracker(data.file_hash, 'Uploaded File Hash');
+            
             // Show hash in alert as well
             alert(`✅ UPLOAD SUCCESSFUL!\n\n🔐 Your File Hash (SHA-256):\n${data.file_hash}\n\nThis unique hash identifies your file on the blockchain.\nSave this hash for reference!`);
             
@@ -329,6 +354,9 @@ function createFileItem(file) {
 
 // Initiate download
 function initiateDownload(fileHash, fileName, isEncrypted) {
+    // Show hash tracker when download starts
+    showHashTracker(fileHash, 'Preparing Download');
+    
     if (isEncrypted) {
         showDownloadModal(fileHash, fileName);
     } else {
@@ -342,14 +370,18 @@ function showDownloadModal(fileHash, fileName) {
     const modalBody = document.getElementById('downloadModalBody');
     
     modalBody.innerHTML = `
-        <p><strong>File:</strong> ${fileName}</p>
+        <p><strong>📄 File:</strong> ${fileName}</p>
+        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107;">
+            <p style="margin: 0 0 8px 0;"><strong>🔐 Downloading File with Hash:</strong></p>
+            <code style="font-family: monospace; font-size: 11px; word-break: break-all; color: #d63384; display: block; background: white; padding: 8px; border-radius: 4px;">${fileHash}</code>
+        </div>
         <p>🔒 This file is encrypted. Please enter the password to download.</p>
         <div class="form-group">
             <label for="downloadPassword">Password:</label>
             <input type="password" id="downloadPassword" placeholder="Enter password" required>
         </div>
         <button class="btn btn-primary" onclick="downloadEncryptedFile('${fileHash}', '${fileName}')">
-            Download
+            🔓 Decrypt & Download
         </button>
     `;
     
@@ -405,7 +437,17 @@ async function downloadFile(fileHash, fileName, password) {
             // Refresh stats to show new download
             await loadStats();
             
-            showStatus(`✓ File downloaded successfully!`, 'success');
+            // Show hash in tracker
+            showHashTracker(fileHash, 'Downloaded File Hash');
+            
+            // Show success with hash
+            showStatus(`✅ File downloaded successfully!`, 'success');
+            
+            // Alert with hash details
+            alert(`✅ DOWNLOAD SUCCESSFUL!\n\n📄 File: ${fileName}\n🔐 Hash: ${fileHash}\n\nDownload recorded on blockchain.`);
+            
+            // Close modal if open
+            closeDownloadModal();
         } else {
             const data = await response.json();
             showStatus(`✗ Error: ${data.error}`, 'error');
@@ -417,6 +459,9 @@ async function downloadFile(fileHash, fileName, password) {
 
 // Show file details modal
 async function showFileDetails(fileHash) {
+    // Show hash in tracker
+    showHashTracker(fileHash, 'Viewing File Details');
+    
     try {
         const response = await fetch(`${API_BASE_URL}/file/${fileHash}`);
         const file = await response.json();
